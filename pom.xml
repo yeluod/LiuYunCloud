@@ -28,15 +28,15 @@
 
         <tlog.version>1.5.0</tlog.version>
 
-        <knife4j-aggregation.version>2.0.9</knife4j-aggregation.version>
+        <knife4j-aggregation.version>4.0.0</knife4j-aggregation.version>
         <knife4j-openapi3-jakarta.version>4.0.0</knife4j-openapi3-jakarta.version>
-        <hutool.version>5.8.10</hutool.version>
+        <hutool.version>5.8.12</hutool.version>
 
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <dynamic-datasource.version>3.6.1</dynamic-datasource.version>
         <p6spy.version>3.9.1</p6spy.version>
         <velocity.version>2.3</velocity.version>
-        <redisson.version>3.19.1</redisson.version>
+        <redisson.version>3.19.3</redisson.version>
         <mybatis-plus-generator.version>3.5.3.1</mybatis-plus-generator.version>
 
     </properties>
