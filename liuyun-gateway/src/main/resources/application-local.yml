@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile:
+        - local
+  application:
+    name: liuyun-gateway
+  cloud:
+    sentinel:
+      scg:
+        fallback:
+          mode: response
+          response-status: 426
+          response-body: '{"code": "B0426","message": "触发限流, 稍后重试!"}'
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: 127.0.0.1:8848
+        group: SERVER_GROUP
+        namespace: ${spring.config.activate.on-profile[0]}
+    gateway:
+      enabled: true
+      discovery:
+        locator:
+          enabled: true
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allow-credentials: true
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allowed-origin-patterns: "*"
+            max-age: 3600
+      routes:
+        - id: liuyun-producer
+          uri: lb://liuyun-producer
+          predicates:
+            - Path=/producer/**
+          filters:
+            - StripPrefix=1
+
+logging:
+  logback:
+    home: ../logs/server/${spring.application.name}
+    name: ${spring.application.name}
+    maxHistory: 30
+    maxFileSize: 100MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS

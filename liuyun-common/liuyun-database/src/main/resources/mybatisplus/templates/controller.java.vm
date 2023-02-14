@@ -1,0 +1,104 @@
+package ${package.Controller};
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import com.liuyun.domain.*;
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+import $!{package.Service}.$!{table.serviceName};
+
+/**
+ * $!{table.comment}相关接口
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Slf4j
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequiredArgsConstructor
+@Tag(name = "$!{table.comment}相关接口")
+@RequestMapping("#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+
+    private final $!{table.serviceName} $!{lowerCaseServiceName};
+
+    /**
+     * 分页查询
+     *
+     * @param pageReq 分页请求参数
+     * @return PageRes<$!{pageResVO}>
+     * @author $!{author}
+     * @since $!{date}
+    **/
+    @PostMapping(value = "/page")
+    @Operation(summary = "分页查询")
+    public PageRes<$!{pageResVO}> page(@Validated @RequestBody PageReq<$!{pageReqVO}> pageReq){
+        return this.$!{lowerCaseServiceName}.page(pageReq).converter($!{pageResVO}.class);
+    }
+
+    /**
+     * 新增信息
+     *
+     * @param vo 新增请求参数对象
+     * @author $!{author}
+     * @since $!{date}
+    **/
+    @PostMapping
+    @Operation(summary = "新增信息")
+    public void add(@Validated @RequestBody $!{addReqVO} vo){
+        this.$!{lowerCaseServiceName}.add(vo);
+    }
+
+    /**
+     * 修改信息
+     *
+     * @param vo 修改请求参数对象
+     * @author $!{author}
+     * @since $!{date}
+    **/
+    @PutMapping
+    @Operation(summary = "修改信息")
+    public void edit(@Validated @RequestBody $!{editReqVO} vo){
+        this.$!{lowerCaseServiceName}.edit(vo);
+    }
+
+    /**
+     * 删除信息
+     *
+     * @param id 主键ID
+     * @author $!{author}
+     * @since $!{date}
+    **/
+    @DeleteMapping(value = "/{id}")
+    @Operation(summary = "删除信息")
+    @Parameter(name = "id", required = true, description = "主键ID")
+    public void removeById(@PathVariable("id") Long id){
+        this.$!{lowerCaseServiceName}.removeById(id);
+    }
+
+}
+#end

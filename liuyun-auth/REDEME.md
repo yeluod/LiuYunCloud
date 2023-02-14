@@ -1,0 +1,1 @@
+http://127.0.0.1:8080/oauth2/authorize?response_type=code&client_id=clientId&&scope=all&redirect_uri=http://www.yeluomate.com

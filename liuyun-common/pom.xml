@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.liuyun</groupId>
+        <artifactId>LiuYunCloud</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <groupId>com.liuyun.common</groupId>
+    <artifactId>liuyun-common</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+    </properties>
+
+    <modules>
+        <module>liuyun-bom</module>
+        <module>liuyun-base</module>
+        <module>liuyun-robot</module>
+        <module>liuyun-cache</module>
+        <module>liuyun-core</module>
+        <module>liuyun-domain</module>
+        <module>liuyun-api</module>
+        <module>liuyun-log</module>
+        <module>liuyun-job</module>
+        <module>liuyun-database</module>
+        <module>liuyun-doc</module>
+    </modules>
+</project>

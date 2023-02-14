@@ -1,0 +1,31 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: liuyun-knife4j
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: 101.43.237.106:8848
+        namespace: LOCAL
+        group: LIUYUN_SERVER_GROUP
+
+knife4j:
+  enableAggregation: true
+  nacos:
+    enable: true
+    serviceUrl: http://101.43.237.106:8848/nacos/
+    routeAuth:
+      enable: true
+      username: nacos
+      password: nacos
+    routes:
+      - name: 示例项目
+        serviceName: liuyun-example
+        namespace-id: LOCAL
+        group-name: LIUYUN_SERVER_GROUP
+        location: /v3/api-docs
+        swaggerVersion: 3.0
+        servicePath: /example

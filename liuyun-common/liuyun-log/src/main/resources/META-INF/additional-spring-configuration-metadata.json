@@ -1,0 +1,24 @@
+{
+  "properties": [
+    {
+      "name": "logging.logback.home",
+      "type": "java.lang.String",
+      "description": "Description for logging.logback.home."
+    },
+    {
+      "name": "logging.logback.name",
+      "type": "java.lang.String",
+      "description": "Description for logging.logback.name."
+    },
+    {
+      "name": "logging.logback.maxHistory",
+      "type": "java.lang.String",
+      "description": "Description for logging.logback.maxHistory."
+    },
+    {
+      "name": "logging.logback.maxFileSize",
+      "type": "java.lang.String",
+      "description": "Description for logging.logback.maxFileSize."
+    }
+  ]
+}

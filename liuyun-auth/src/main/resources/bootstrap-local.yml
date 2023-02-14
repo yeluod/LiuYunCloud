@@ -1,0 +1,77 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile:
+        - local
+  application:
+    name: liuyun-auth
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: 123456
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 8
+          min-idle: 0
+          max-idle: 8
+          max-wait: -1ms
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: 127.0.0.1:8848
+        group: SERVER
+        namespace: ${spring.config.activate.on-profile[0]}
+        metadata:
+          context-path: ${server.servlet.context-path}/actuator
+      config:
+        enabled: true
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        group: ${spring.cloud.nacos.discovery.group}
+        file-extension: yml
+        refresh-enabled: true
+        shared-configs:
+          - data-id: liuyun-logback-config.${spring.cloud.nacos.config.file-extension}
+            group: ${spring.cloud.nacos.discovery.group}
+          - data-id: liuyun-endpoints-config.${spring.cloud.nacos.config.file-extension}
+            group: ${spring.cloud.nacos.discovery.group}
+  datasource:
+    dynamic:
+      primary: liuyun-sys
+      strict: true
+      seata: false
+      p6spy: true
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 10
+        maxWait: 60000
+        keep-alive: true
+        validation-query: SELECT 1
+        test-while-idle: true
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+      datasource:
+        liuyun-sys:
+          driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+          url: jdbc:p6spy:mysql://127.0.0.1:3306/liuyun-sys?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowMultiQueries=true
+          username: root
+          password: 123456
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  type-aliases-package: com.liuyun.domain.*.entity
+  configuration:
+    # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    auto-mapping-behavior: FULL
+  global-config:
+    banner: false
+    db-config:
+      id-type: ASSIGN_ID
