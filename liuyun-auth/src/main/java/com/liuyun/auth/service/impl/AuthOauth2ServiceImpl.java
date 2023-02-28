@@ -39,12 +39,11 @@ public class AuthOauth2ServiceImpl implements AuthOauth2Service {
         Opt.ofNullable(request)
                 .map(item -> JakartaServletUtil.getHeader(request, AuthServerConstant.AUTHORIZATION_KEY, StandardCharsets.UTF_8))
                 .filter(StrUtil::isNotBlank)
-                .peek(Oauth2Helper::splitToken)
+                .map(Oauth2Helper::splitToken)
                 .filter(StrUtil::isNotBlank)
+                .filter(Oauth2Helper::verifyToken)
                 .map(Oauth2Helper::parseToken)
-                //.map(item -> )
-                .ifPresent(authorization -> {})
-        ;
-
+                .map(jwt -> jwt.getPayload("id"))
+                .ifPresent(this.authAuthorizationService::deleteTokenByIndexId);
     }
 }

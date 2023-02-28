@@ -1,9 +1,12 @@
 package com.liuyun.auth.token;
 
 import cn.hutool.core.lang.Opt;
+import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.extra.spring.SpringUtil;
 import com.liuyun.auth.helper.Oauth2Helper;
+import com.liuyun.auth.repository.token.AuthAuthorizationService;
 import com.liuyun.auth.repository.user.BaseUserDetailsService;
+import com.liuyun.auth.service.SysPermissionService;
 import com.liuyun.auth.service.SysRoleService;
 import com.liuyun.base.dto.BaseDTO;
 import org.springframework.security.core.userdetails.User;
@@ -31,12 +34,16 @@ import java.util.*;
 public class AuthOauth2AccessTokenGenerator extends BaseOauth2TokenGenerator<OAuth2AccessToken> {
 
     private final AuthOauth2TokenCustomizer accessTokenCustomizer;
+    private final AuthAuthorizationService authAuthorizationService;
     private final SysRoleService sysRoleService;
+    private final SysPermissionService sysPermissionService;
     private final Map<String, BaseUserDetailsService> userDetailsServices;
 
-    public AuthOauth2AccessTokenGenerator(AuthOauth2TokenCustomizer accessTokenCustomizer) {
+    public AuthOauth2AccessTokenGenerator(AuthOauth2TokenCustomizer accessTokenCustomizer, AuthAuthorizationService authAuthorizationService) {
         this.accessTokenCustomizer = accessTokenCustomizer;
+        this.authAuthorizationService = authAuthorizationService;
         this.sysRoleService = SpringUtil.getBeansOfType(SysRoleService.class).entrySet().iterator().next().getValue();
+        this.sysPermissionService = SpringUtil.getBeansOfType(SysPermissionService.class).entrySet().iterator().next().getValue();
         this.userDetailsServices = SpringUtil.getBeansOfType(BaseUserDetailsService.class);
     }
 
@@ -100,7 +107,9 @@ public class AuthOauth2AccessTokenGenerator extends BaseOauth2TokenGenerator<OAu
             var userEntity = userService.getUser(username);
             var loginUser = Oauth2Helper.convertToLoginUser(userEntity);
             Set<String> roles = this.sysRoleService.queryRoleCodesByUserId(userEntity.getId());
-            this.accessTokenCustomizer.customize(accessTokenContextBuilder.build(), loginUser, roles);
+            List<Tree<Long>> menus = this.sysPermissionService.loadMenusByUserId(userEntity.getId());
+            this.accessTokenCustomizer.customize(accessTokenContextBuilder.build(), loginUser, roles, menus);
+            this.authAuthorizationService.saveUser(userEntity.getId(), loginUser, roles, menus);
             OAuth2TokenClaimsSet accessTokenClaimsSet = claimsBuilder.build();
             return new AuthOauth2AccessTokenClaims(
                     OAuth2AccessToken.TokenType.BEARER,

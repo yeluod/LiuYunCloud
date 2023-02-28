@@ -17,6 +17,7 @@ public class AuthServerConstant {
 
     public final String TOKEN_CLAIMS_USER_EXTEND = "user";
     public final String TOKEN_CLAIMS_ROLE_EXTEND = "role";
+    public final String TOKEN_CLAIMS_MENUS_EXTEND = "menus";
 
 
     public final String PARAMETER_PHONE = "phone";

@@ -148,7 +148,9 @@ public class Oauth2Helper {
     }
 
     public String splitToken(String token) {
-        return StrUtil.trim(StrUtil.removePrefix(token, OAuth2AccessToken.TokenType.BEARER.getValue()));
+        var value = OAuth2AccessToken.TokenType.BEARER.getValue();
+        var removePrefix = StrUtil.removePrefix(token, value);
+        return StrUtil.trim(removePrefix);
     }
 
     public OAuth2Error error(String message) {

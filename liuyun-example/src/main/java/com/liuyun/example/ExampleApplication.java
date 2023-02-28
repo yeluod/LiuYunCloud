@@ -37,7 +37,7 @@ public class ExampleApplication {
         return openApi -> {
             if (openApi.getTags() != null) {
                 openApi.getTags().forEach(tag -> {
-                    Map<String, Object> map = new HashMap<>();
+                    Map<String, Object> map = new HashMap<>(16);
                     map.put("x-order", RandomUtil.randomInt(0, 100));
                     tag.setExtensions(map);
                 });

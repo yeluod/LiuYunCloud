@@ -31,7 +31,7 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         // 开放自定义的部分端点
-        http.formLogin(Customizer.withDefaults())
+        http
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/token/logout",
                                 "/code/sms/**",
@@ -43,7 +43,11 @@ public class WebSecurityConfiguration {
                                 "/actuator/**"
                         )
                         .permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                .headers().frameOptions().disable()
+                .and()
+                .csrf().disable();
         http.authenticationProvider(new AuthUserDetailsAuthenticationProvider());
         return http.build();
     }

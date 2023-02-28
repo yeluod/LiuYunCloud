@@ -1,10 +1,12 @@
 package com.liuyun.auth.token;
 
+import cn.hutool.core.lang.tree.Tree;
 import com.liuyun.domain.auth.constants.AuthServerConstant;
 import com.liuyun.domain.auth.dto.LoginUser;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenClaimsContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,9 +29,10 @@ public class AuthOauth2TokenCustomizer implements OAuth2TokenCustomizer<OAuth2To
         // ..
     }
 
-    public void customize(OAuth2TokenClaimsContext context, LoginUser loginUser, Set<String> roles) {
+    public void customize(OAuth2TokenClaimsContext context, LoginUser loginUser, Set<String> roles, List<Tree<Long>> menus) {
         var claims = context.getClaims();
         claims.claim(AuthServerConstant.TOKEN_CLAIMS_USER_EXTEND, loginUser);
         claims.claim(AuthServerConstant.TOKEN_CLAIMS_ROLE_EXTEND, roles);
+        claims.claim(AuthServerConstant.TOKEN_CLAIMS_MENUS_EXTEND, menus);
     }
 }

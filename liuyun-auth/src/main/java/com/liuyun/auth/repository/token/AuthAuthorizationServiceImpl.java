@@ -2,6 +2,7 @@ package com.liuyun.auth.repository.token;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Opt;
+import cn.hutool.core.lang.tree.Tree;
 import com.liuyun.base.dto.BaseDTO;
 import com.liuyun.base.utils.CacheKey;
 import com.liuyun.cache.redis.RedisService;
@@ -24,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,14 +48,14 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
 
     @Override
     public void save(OAuth2Authorization authorization) {
-        // 删除久的令牌信息
+        // 删除令牌信息
         this.deleteTokenByIndex(authorization);
-        if (isState(authorization)) {
+        if (this.isState(authorization)) {
             String key = this.buildKey(OAuth2ParameterNames.STATE, authorization.getAttribute(OAuth2ParameterNames.STATE));
             this.redisValueOps().set(key, authorization, TIMEOUT, TimeUnit.SECONDS);
         }
         Opt<OAuth2Authorization> opt = Opt.of(authorization);
-        if (isCode(authorization)) {
+        if (this.isCode(authorization)) {
             OAuth2AuthorizationCode authorizationCodeToken = opt
                     .map(item -> item.getToken(OAuth2AuthorizationCode.class))
                     .map(OAuth2Authorization.Token::getToken)
@@ -62,7 +64,7 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
             String key = this.buildKey(OAuth2ParameterNames.CODE, authorizationCodeToken.getTokenValue());
             this.redisValueOps().set(key, authorization, expire, TimeUnit.SECONDS);
         }
-        if (isRefreshToken(authorization)) {
+        if (this.isRefreshToken(authorization)) {
             OAuth2RefreshToken refreshToken = opt.map(OAuth2Authorization::getRefreshToken)
                     .map(OAuth2Authorization.Token::getToken)
                     .orElseThrow(UnsupportedOperationException::new);
@@ -70,7 +72,7 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
             String key = this.buildKey(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken.getTokenValue());
             this.redisValueOps().set(key, authorization, expire, TimeUnit.SECONDS);
         }
-        if (isAccessToken(authorization)) {
+        if (this.isAccessToken(authorization)) {
             OAuth2AccessToken accessToken = opt.map(OAuth2Authorization::getAccessToken)
                     .map(OAuth2Authorization.Token::getToken)
                     .orElseThrow(UnsupportedOperationException::new);
@@ -89,20 +91,20 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
             keys.add(this.buildKey(OAuth2ParameterNames.STATE, authorization.getAttribute(OAuth2ParameterNames.STATE)));
         }
         Opt<OAuth2Authorization> opt = Opt.of(authorization);
-        if (isCode(authorization)) {
+        if (this.isCode(authorization)) {
             OAuth2AuthorizationCode authorizationCodeToken = opt
                     .map(item -> item.getToken(OAuth2AuthorizationCode.class))
                     .map(OAuth2Authorization.Token::getToken)
                     .orElseThrow(UnsupportedOperationException::new);
             keys.add(this.buildKey(OAuth2ParameterNames.CODE, authorizationCodeToken.getTokenValue()));
         }
-        if (isRefreshToken(authorization)) {
+        if (this.isRefreshToken(authorization)) {
             OAuth2RefreshToken refreshToken = opt.map(OAuth2Authorization::getRefreshToken)
                     .map(OAuth2Authorization.Token::getToken)
                     .orElseThrow(UnsupportedOperationException::new);
             keys.add(this.buildKey(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken.getTokenValue()));
         }
-        if (isAccessToken(authorization)) {
+        if (this.isAccessToken(authorization)) {
             OAuth2AccessToken accessToken = opt.map(OAuth2Authorization::getAccessToken)
                     .map(OAuth2Authorization.Token::getToken)
                     .orElseThrow(UnsupportedOperationException::new);
@@ -145,7 +147,7 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
         if (Objects.isNull(authorization.getAccessToken()) && Objects.isNull(authorization.getRefreshToken())) {
             return;
         }
-        Long userId = getUserIdByToken(authorization);
+        Long userId = this.getUserIdByToken(authorization);
         var cacheKey = CacheKey.format(AuthCacheConstant.CACHE_TOKEN_INDEX_PREFIX, userId);
         var baseDTO = BaseDTO.create();
         long expire = 0L;
@@ -179,8 +181,20 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
      **/
     @Override
     public void deleteTokenByIndex(OAuth2Authorization authorization) {
-        Long userId = getUserIdByToken(authorization);
-        String cacheKey = CacheKey.format(AuthCacheConstant.CACHE_TOKEN_INDEX_PREFIX, userId);
+        this.deleteTokenByIndexId(this.getUserIdByToken(authorization));
+    }
+
+    /**
+     * 根据索引ID删除token
+     * <p>
+     *
+     * @param id {@link Object}
+     * @author W.d
+     * @since 2023/2/13 11:58
+     **/
+    @Override
+    public void deleteTokenByIndexId(Object id) {
+        String cacheKey = CacheKey.format(AuthCacheConstant.CACHE_TOKEN_INDEX_PREFIX, id);
         Opt.ofBlankAble(cacheKey)
                 .map(this.redisService::hGetAll)
                 .filter(CollUtil::isNotEmpty)
@@ -190,6 +204,25 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
                 .forEach(this.redisService::delete);
     }
 
+    /**
+     * 保存登陆用户信息
+     *
+     * @param id        {@link Long} 用户ID
+     * @param loginUser {@link LoginUser} 用户信息
+     * @param roles     {@link Set} 角色
+     * @param menus     {@link List} 菜单
+     * @author W.d
+     * @since 2023/2/28 18:08
+     **/
+    @Override
+    public void saveUser(Long id, LoginUser loginUser, Set<String> roles, List<Tree<Long>> menus) {
+        BaseDTO map = BaseDTO.create()
+                .set(AuthCacheConstant.CACHE_LOGIN_USER_USER, loginUser)
+                .set(AuthCacheConstant.CACHE_LOGIN_USER_ROLES, roles)
+                .set(AuthCacheConstant.CACHE_LOGIN_USER_MENUS, menus);
+        String key = CacheKey.format(AuthCacheConstant.CACHE_LOGIN_USER_PREFIX, id);
+        this.redisService.hPutAll(key, map);
+    }
 
     private String buildKey(String type, String id) {
         return CacheKey.format(AuthCacheConstant.CACHE_TOKEN_PREFIX, type, id);
@@ -201,25 +234,25 @@ public class AuthAuthorizationServiceImpl implements AuthAuthorizationService {
         return ChronoUnit.SECONDS.between(issuedAt, expiresAt);
     }
 
-    private static boolean isState(OAuth2Authorization authorization) {
+    private boolean isState(OAuth2Authorization authorization) {
         return Objects.nonNull(authorization.getAttribute(OAuth2ParameterNames.STATE));
     }
 
-    private static boolean isCode(OAuth2Authorization authorization) {
+    private boolean isCode(OAuth2Authorization authorization) {
         OAuth2Authorization.Token<OAuth2AuthorizationCode> authorizationCode = authorization
                 .getToken(OAuth2AuthorizationCode.class);
         return Objects.nonNull(authorizationCode);
     }
 
-    private static boolean isRefreshToken(OAuth2Authorization authorization) {
+    private boolean isRefreshToken(OAuth2Authorization authorization) {
         return Objects.nonNull(authorization.getRefreshToken());
     }
 
-    private static boolean isAccessToken(OAuth2Authorization authorization) {
+    private boolean isAccessToken(OAuth2Authorization authorization) {
         return Objects.nonNull(authorization.getAccessToken());
     }
 
-    private static Long getUserIdByToken(OAuth2Authorization authorization) {
+    private Long getUserIdByToken(OAuth2Authorization authorization) {
         return Opt.ofNullable(authorization)
                 .map(OAuth2Authorization::getAccessToken)
                 .map(OAuth2Authorization.Token::getClaims)
