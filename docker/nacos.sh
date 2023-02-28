@@ -4,11 +4,11 @@ CONTAINER_NAME='nacos-server'
 IMAGES_NAME='nacos/nacos-server:v2.2.0'
 LOCAL_MOUNT_VOLUME='/Users/wangdong/docker/nacos'
 NACOS_APPLICATION_PORT='8848'
-MYSQL_SERVICE_HOST='host.docker.internal'
+MYSQL_SERVICE_HOST='59.110.238.123'
 MYSQL_SERVICE_PORT='3306'
 MYSQL_SERVICE_DB_NAME='liuyun-nacos'
 MYSQL_SERVICE_USER='root'
-MYSQL_SERVICE_PASSWORD='123456'
+MYSQL_SERVICE_PASSWORD='Yeluo@3306'
 MYSQL_SERVICE_DB_PARAM='characterEncoding=utf8&connectTimeout=10000&socketTimeout=30000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai'
 
 CONTAINER_ID=$(docker ps | grep "${CONTAINER_NAME}" | grep -v "grep" | awk '{print $1}')

@@ -31,10 +31,19 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         // 开放自定义的部分端点
-        http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults())
-        ;
+        http.formLogin(Customizer.withDefaults())
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/token/logout",
+                                "/code/sms/**",
+                                "/doc.html",
+                                "/favicon.ico",
+                                "/webjars/js/**",
+                                "/webjars/css/**",
+                                "/v3/api-docs/**",
+                                "/actuator/**"
+                        )
+                        .permitAll()
+                        .anyRequest().authenticated());
         http.authenticationProvider(new AuthUserDetailsAuthenticationProvider());
         return http.build();
     }

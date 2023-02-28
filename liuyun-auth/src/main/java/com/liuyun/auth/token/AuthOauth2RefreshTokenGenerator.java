@@ -3,10 +3,8 @@ package com.liuyun.auth.token;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * AuthOauth2RefreshTokenGenerator
@@ -14,7 +12,7 @@ import java.util.UUID;
  * @author W.d
  * @since 2023/2/9 11:45
  **/
-public class AuthOauth2RefreshTokenGenerator implements OAuth2TokenGenerator<OAuth2RefreshToken> {
+public class AuthOauth2RefreshTokenGenerator extends BaseOauth2TokenGenerator<OAuth2RefreshToken> {
 
     /**
      * 生成令牌
@@ -31,7 +29,7 @@ public class AuthOauth2RefreshTokenGenerator implements OAuth2TokenGenerator<OAu
         }
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(context.getRegisteredClient().getTokenSettings().getRefreshTokenTimeToLive());
-        return new OAuth2RefreshToken(UUID.randomUUID().toString(), issuedAt, expiresAt);
+        return new OAuth2RefreshToken(super.uuid(), issuedAt, expiresAt);
     }
 
 }

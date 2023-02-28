@@ -80,6 +80,8 @@ public class AuthUserDetailsAuthenticationProvider extends AbstractUserDetailsAu
         Assert.notNull(code, () -> new BadCredentialsException("验证码已过期"));
         var presentedCode = authentication.getCredentials().toString();
         Assert.equals(presentedCode, code, () -> new BadCredentialsException("验证码错误"));
+        // 删除验证码
+        this.redisService.delete(cacheKey);
     }
 
     @Override

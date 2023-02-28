@@ -3,6 +3,7 @@ package com.liuyun.auth.config;
 import cn.hutool.core.lang.Opt;
 import com.liuyun.auth.token.AuthOauth2AccessTokenConverter;
 import com.liuyun.base.result.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenRespon
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.util.CollectionUtils;
 
 import java.time.temporal.ChronoUnit;
@@ -96,5 +98,15 @@ public class AuthorizationHandleConfiguration {
         SecurityContextHolder.clearContext();
         var convert = ACCESS_TOKEN_CONVERTER.convert(accessTokenResponse);
         Result.write(response, Result.success(convert));
+    }
+
+    @Bean
+    public LogoutHandler logoutHandler() {
+        return new LogoutHandler() {
+            @Override
+            public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+                System.out.println("123123123213");
+            }
+        };
     }
 }

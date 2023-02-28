@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
 
-    <contextListener class="com.yomahub.tlog.core.enhance.logback.TLogLogbackTTLMdcListener"/>
-
     <!--定义日志文件的存储地址 -->
     <springProperty scope="context" name="LOG_HOME" source="logging.logback.home" defaultValue="../logs"/>
     <springProperty scope="context" name="LOG_NAME" source="logging.logback.name" defaultValue="unknown"/>
@@ -11,11 +9,11 @@
 
     <!-- 控制台彩色日志格式  %black", "%red", "%green","%yellow","%blue", "%magenta","%cyan", "%white", "%gray", "%boldRed","%boldGreen", "%boldYellow", "%boldBlue", "%boldMagenta""%boldCyan", "%boldWhite" and "%highlight" 支持的颜色-->
     <property name="CONSOLE_LOG_PATTERN"
-              value="%boldCyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) %highlight(%-5level) %red([%thread]) %white(%-4relative) %yellow(%logger{50}) %blue([%L]) %green([%X{tl}]) - %white(%msg%n)"/>
+              value="%boldCyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) %highlight(%-5level) %red([%thread]) %white(%-4relative) %yellow(%logger{60}) %blue([%L]) %green([%X{TRACE_ID}]) - %white(%msg%n)"/>
 
     <!--文件日志打印格式 -->
     <property name="FILE_LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %-4relative %logger{50} [%L] %X{tl} - %msg %n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %-4relative %logger{60} [%L] %X{TRACE_ID} - %msg %n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">

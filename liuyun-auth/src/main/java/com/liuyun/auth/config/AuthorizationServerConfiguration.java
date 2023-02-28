@@ -115,12 +115,11 @@ public class AuthorizationServerConfiguration {
     @SuppressWarnings("all")
     public OAuth2TokenGenerator<? extends OAuth2Token> oauth2TokenGenerator() {
         // accessToken
-        var accessTokenGenerator = new AuthOauth2AccessTokenGenerator();
-        accessTokenGenerator.setAccessTokenCustomizer(new AuthOauth2TokenCustomizer());
+        var accessTokenGenerator = new AuthOauth2AccessTokenGenerator(
+                new AuthOauth2TokenCustomizer());
         // refreshToken
         var refreshTokenGenerator = new AuthOauth2RefreshTokenGenerator();
         return new DelegatingOAuth2TokenGenerator(accessTokenGenerator, refreshTokenGenerator);
     }
-
 
 }

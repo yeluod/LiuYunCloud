@@ -28,7 +28,10 @@ public class ApiResponseBodyAdvice implements ResponseBodyAdvice<Object> {
      * 需要忽略的地址
      */
     private static final String[] IGNORES = new String[]{
-            "/actuator/**"
+            "/webjars/**",
+            "/doc.html",
+            "/actuator/**",
+            "/v3/api-docs/**"
     };
 
     @Override

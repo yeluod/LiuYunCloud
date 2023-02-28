@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  mysql:
+    image: hippo4j/hippo4j-server:latest
+    container_name: hippo4j
+    ports:
+      - "6691:6691"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      DATASOURCE_MODE: mysql
+      DATASOURCE_HOST: 59.110.238.123
+      DATASOURCE_PORT: 3306
+      DATASOURCE_DB: hippo4j_manager
+      DATASOURCE_USERNAME: root
+      DATASOURCE_PASSWORD: Yeluo@3306

@@ -42,7 +42,6 @@ public class AuthOauth2AccessTokenConverter implements Converter<OAuth2AccessTok
         }
         Map<String, Object> additionalParameters = tokenResponse.getAdditionalParameters();
         if (!CollectionUtils.isEmpty(additionalParameters)) {
-            parameters.put(AuthServerConstant.TOKEN_CLAIMS_CLIENT_ID_EXTEND, additionalParameters.get(AuthServerConstant.TOKEN_CLAIMS_CLIENT_ID_EXTEND));
             parameters.put(AuthServerConstant.TOKEN_CLAIMS_USER_EXTEND, additionalParameters.get(AuthServerConstant.TOKEN_CLAIMS_USER_EXTEND));
             parameters.put(AuthServerConstant.TOKEN_CLAIMS_ROLE_EXTEND, additionalParameters.get(AuthServerConstant.TOKEN_CLAIMS_ROLE_EXTEND));
         }

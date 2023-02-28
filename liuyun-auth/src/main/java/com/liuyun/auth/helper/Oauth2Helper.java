@@ -2,6 +2,11 @@ package com.liuyun.auth.helper;
 
 import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.HmacAlgorithm;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
+import cn.hutool.jwt.signers.JWTSigner;
+import cn.hutool.jwt.signers.JWTSignerUtil;
 import com.liuyun.auth.repository.user.BaseUserDetailsService;
 import com.liuyun.base.exception.VerifyException;
 import com.liuyun.base.utils.ServletUtil;
@@ -13,16 +18,14 @@ import com.liuyun.domain.sys.entity.SysUserEntity;
 import lombok.experimental.UtilityClass;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,6 +39,9 @@ import java.util.Map;
  **/
 @UtilityClass
 public class Oauth2Helper {
+
+    private final JWTSigner jwtSigner = JWTSignerUtil.createSigner(HmacAlgorithm.HmacSHA256.getValue(),
+            "LiuYun".getBytes(StandardCharsets.UTF_8));
 
     /**
      * 转换为 UserDetails
@@ -127,6 +133,22 @@ public class Oauth2Helper {
                                                                    String grantType) {
         return Opt.ofNullable(userDetailsServices.get(grantType))
                 .orElse(userDetailsServices.get("default"));
+    }
+
+    public String generatorToken(Map<String, Object> map) {
+        return JWTUtil.createToken(map, jwtSigner);
+    }
+
+    public boolean verifyToken(String token) {
+        return JWTUtil.verify(token, jwtSigner);
+    }
+
+    public JWT parseToken(String token) {
+        return JWTUtil.parseToken(token);
+    }
+
+    public String splitToken(String token) {
+        return StrUtil.trim(StrUtil.removePrefix(token, OAuth2AccessToken.TokenType.BEARER.getValue()));
     }
 
     public OAuth2Error error(String message) {

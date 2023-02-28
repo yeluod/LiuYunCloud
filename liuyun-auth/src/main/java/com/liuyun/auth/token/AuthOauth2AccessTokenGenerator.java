@@ -1,20 +1,26 @@
 package com.liuyun.auth.token;
 
 import cn.hutool.core.lang.Opt;
+import cn.hutool.extra.spring.SpringUtil;
+import com.liuyun.auth.helper.Oauth2Helper;
+import com.liuyun.auth.repository.user.BaseUserDetailsService;
+import com.liuyun.auth.service.SysRoleService;
+import com.liuyun.base.dto.BaseDTO;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContext;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
-import org.springframework.security.oauth2.server.authorization.token.*;
-import org.springframework.util.Assert;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenClaimsContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenClaimsSet;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * AuthOAuth2TokenGenerator
@@ -22,9 +28,17 @@ import java.util.UUID;
  * @author W.d
  * @since 2023/2/8 14:09
  **/
-public class AuthOauth2AccessTokenGenerator implements OAuth2TokenGenerator<OAuth2AccessToken> {
+public class AuthOauth2AccessTokenGenerator extends BaseOauth2TokenGenerator<OAuth2AccessToken> {
 
-    private OAuth2TokenCustomizer<OAuth2TokenClaimsContext> accessTokenCustomizer;
+    private final AuthOauth2TokenCustomizer accessTokenCustomizer;
+    private final SysRoleService sysRoleService;
+    private final Map<String, BaseUserDetailsService> userDetailsServices;
+
+    public AuthOauth2AccessTokenGenerator(AuthOauth2TokenCustomizer accessTokenCustomizer) {
+        this.accessTokenCustomizer = accessTokenCustomizer;
+        this.sysRoleService = SpringUtil.getBeansOfType(SysRoleService.class).entrySet().iterator().next().getValue();
+        this.userDetailsServices = SpringUtil.getBeansOfType(BaseUserDetailsService.class);
+    }
 
     /**
      * 生成令牌
@@ -40,7 +54,6 @@ public class AuthOauth2AccessTokenGenerator implements OAuth2TokenGenerator<OAut
             !OAuth2TokenFormat.REFERENCE.equals(context.getRegisteredClient().getTokenSettings().getAccessTokenFormat())) {
             return null;
         }
-
         OAuth2TokenClaimsSet.Builder claimsBuilder = OAuth2TokenClaimsSet.builder();
         // 颁发者
         Opt.of(context)
@@ -66,42 +79,45 @@ public class AuthOauth2AccessTokenGenerator implements OAuth2TokenGenerator<OAut
         Opt.ofEmptyAble(context.getAuthorizedScopes())
                 .ifPresent(scopes -> claimsBuilder.claim(OAuth2ParameterNames.SCOPE, scopes));
 
-        if (Objects.nonNull(this.accessTokenCustomizer)) {
-            OAuth2TokenClaimsContext.Builder accessTokenContextBuilder = OAuth2TokenClaimsContext.with(claimsBuilder)
-                    .registeredClient(context.getRegisteredClient())
-                    .principal(context.getPrincipal())
-                    .authorizationServerContext(context.getAuthorizationServerContext())
-                    .authorizedScopes(context.getAuthorizedScopes())
-                    .tokenType(context.getTokenType())
-                    .authorizationGrantType(context.getAuthorizationGrantType());
-            if (Objects.nonNull(context.getAuthorization())) {
-                accessTokenContextBuilder.authorization(context.getAuthorization());
-            }
-            if (Objects.nonNull(context.getAuthorizationGrant())) {
-                accessTokenContextBuilder.authorizationGrant(context.getAuthorizationGrant());
-            }
-            this.accessTokenCustomizer.customize(accessTokenContextBuilder.build());
+        OAuth2TokenClaimsContext.Builder accessTokenContextBuilder = OAuth2TokenClaimsContext.with(claimsBuilder)
+                .registeredClient(context.getRegisteredClient())
+                .principal(context.getPrincipal())
+                .authorizationServerContext(context.getAuthorizationServerContext())
+                .authorizedScopes(context.getAuthorizedScopes())
+                .tokenType(context.getTokenType())
+                .authorizationGrantType(context.getAuthorizationGrantType());
+        if (Objects.nonNull(context.getAuthorization())) {
+            accessTokenContextBuilder.authorization(context.getAuthorization());
         }
-
-        OAuth2TokenClaimsSet accessTokenClaimsSet = claimsBuilder.build();
-        return new AuthOauth2AccessTokenClaims(
-                OAuth2AccessToken.TokenType.BEARER,
-                UUID.randomUUID().toString(),
-                accessTokenClaimsSet.getIssuedAt(),
-                accessTokenClaimsSet.getExpiresAt(),
-                context.getAuthorizedScopes(),
-                accessTokenClaimsSet.getClaims());
-    }
-
-    /**
-     * 设置定制器
-     *
-     * @param accessTokenCustomizer {@link OAuth2TokenCustomizer}
-     * @author W.d
-     * @since 2023/2/9 11:14
-     **/
-    public void setAccessTokenCustomizer(OAuth2TokenCustomizer<OAuth2TokenClaimsContext> accessTokenCustomizer) {
-        Assert.notNull(accessTokenCustomizer, "accessTokenCustomizer cannot be null");
-        this.accessTokenCustomizer = accessTokenCustomizer;
+        if (Objects.nonNull(context.getAuthorizationGrant())) {
+            accessTokenContextBuilder.authorizationGrant(context.getAuthorizationGrant());
+        }
+        AuthorizationGrantType grantType = context.getAuthorizationGrantType();
+        if (!Objects.equals(AuthorizationGrantType.CLIENT_CREDENTIALS, grantType)) {
+            var userService = Oauth2Helper.getUserDetailsServiceByGrantType(userDetailsServices, grantType.getValue());
+            var user = (User) context.getPrincipal().getPrincipal();
+            var username = user.getUsername();
+            var userEntity = userService.getUser(username);
+            var loginUser = Oauth2Helper.convertToLoginUser(userEntity);
+            Set<String> roles = this.sysRoleService.queryRoleCodesByUserId(userEntity.getId());
+            this.accessTokenCustomizer.customize(accessTokenContextBuilder.build(), loginUser, roles);
+            OAuth2TokenClaimsSet accessTokenClaimsSet = claimsBuilder.build();
+            return new AuthOauth2AccessTokenClaims(
+                    OAuth2AccessToken.TokenType.BEARER,
+                    super.jwt(BaseDTO.create().set("id", loginUser.getId())),
+                    accessTokenClaimsSet.getIssuedAt(),
+                    accessTokenClaimsSet.getExpiresAt(),
+                    context.getAuthorizedScopes(),
+                    accessTokenClaimsSet.getClaims());
+        } else {
+            OAuth2TokenClaimsSet accessTokenClaimsSet = claimsBuilder.build();
+            return new AuthOauth2AccessTokenClaims(
+                    OAuth2AccessToken.TokenType.BEARER,
+                    super.uuid(),
+                    accessTokenClaimsSet.getIssuedAt(),
+                    accessTokenClaimsSet.getExpiresAt(),
+                    context.getAuthorizedScopes(),
+                    accessTokenClaimsSet.getClaims());
+        }
     }
 }

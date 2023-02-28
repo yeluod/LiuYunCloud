@@ -47,9 +47,9 @@ spring:
       datasource:
         liuyun-example:
           driver-class-name: com.p6spy.engine.spy.P6SpyDriver
-          url: jdbc:p6spy:mysql://127.0.0.1:3306/liuyun-example?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowMultiQueries=true
+          url: jdbc:p6spy:mysql://59.110.238.123:3306/liuyun-example?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowMultiQueries=true
           username: root
-          password: 123456
+          password: Yeluo@3306
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*Mapper.xml
@@ -63,3 +63,22 @@ mybatis-plus:
     banner: false
     db-config:
       id-type: ASSIGN_ID
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.liuyun.example.controller
+
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn

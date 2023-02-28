@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
  * @since 2022/8/2 17:32
  **/
 @ToString
-public class BaseDTO extends LinkedHashMap<String, Object> implements Serializable {
+public final class BaseDTO extends LinkedHashMap<String, Object> implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

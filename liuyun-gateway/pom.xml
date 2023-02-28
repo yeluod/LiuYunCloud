@@ -41,16 +41,15 @@
         </dependency>
 
         <!-- sentinel -->
-        <dependency>
+        <!--<dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
-        </dependency>
+        </dependency>-->
 
-        <!-- tlog -->
+        <!-- loadbalancer -->
         <dependency>
-            <groupId>com.yomahub</groupId>
-            <artifactId>tlog-gateway-spring-boot-starter</artifactId>
-            <version>${tlog.version}</version>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
         <dependency>
